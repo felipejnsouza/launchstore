@@ -1,9 +1,9 @@
 CREATE TABLE "products" (
   "id" SERIAL PRIMARY KEY,
-  "category_id" integer,
+  "category_id" integer NOT NULL,
   "user_id" integer,
   "name" text NOT NULL,
-  "description" text NOT NULL,
+  "description" texto NOT NULL,
   "old_price" integer,
   "price" integer NOT NULL,
   "quantity" integer DEFAULT 0,
@@ -18,7 +18,7 @@ CREATE TABLE "categories" (
 );
 
 CREATE TABLE "files" (
-  "id" integer PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "name" text,
   "path" text NOT NULL,
   "product_id" integer
