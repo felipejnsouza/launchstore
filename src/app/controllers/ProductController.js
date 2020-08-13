@@ -43,7 +43,7 @@ module.exports = {
         let results = await Product.find(require.params.id);
         const product = results.rows[0];
 
-        if(!product) results.send('Product not found!');
+        if(!product) response.send('Product not found!');
 
         product.price = formatPrice(product.price);
         product.old_price = formatPrice(product.old_price);
@@ -67,9 +67,28 @@ module.exports = {
         const keys = Object.keys(require.body);
 
         for(key of keys){
-            if(require.body[key] == "") {
+            if(require.body[key] == "" && key != "removed_files") {
                 return response.send('Please, fill all fields!')
             };
+        };
+
+        if(require.files.length != 0){
+            const newFilesPromise = require.files.map( file => {
+                File.create({...file, product_id: require.body.id})
+            })
+
+            await Promise.all(newFilesPromise);
+        };
+
+        if(require.body.removed_files){
+            const removedFiles = require.body.removed_files.split(",");
+            const lastIndex = removedFiles.length - 1;
+            
+            removedFiles.splice(lastIndex,1);
+
+            const removedFilesPromises = removedFiles.map( id => File.delete(id));
+
+            await Promise.all(removedFilesPromises);
         };
 
         require.body.price = require.body.price.replace(/\D/g,"");
