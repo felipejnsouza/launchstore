@@ -20,6 +20,10 @@ CREATE TABLE "categories" (
   "name" text NOT NULL
 );
 
+INSERT INTO categories(name) VALUES ('comida');
+INSERT INTO categories(name) VALUES ('eletrônicos');
+INSERT INTO categories(name) VALUES ('automóveis');
+
 CREATE TABLE "files" (
   "id" SERIAL PRIMARY KEY,
   "name" text,
