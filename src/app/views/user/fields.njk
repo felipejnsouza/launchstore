@@ -28,7 +28,12 @@
     <div class="input">
         <input type="password" 
             name="password"
+            {% if not user.id %}
             placeholder="Escolha uma senha segura"
+            {% else %}
+            placeholder="Digite sua senha para atualizar seu cadastro"
+            {% endif %}
+
             >
     </div>
 </div>
@@ -78,7 +83,7 @@
         <input type="text" 
             name="address"
             placeholder="Digite seu endereço completo"
-            value='{{ user.adress }}'>
+            value='{{ user.address }}'>
     </div>
 </div>
 

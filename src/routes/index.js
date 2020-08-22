@@ -21,7 +21,7 @@ routes.get('/ads/create', (require, response) => {
 });
 
 routes.get('/accounts', (require, response) => {
-    return response.redirect(`/users/register`)
+    return response.redirect(`/users/login`)
 });
 
 module.exports = routes;
