@@ -7,6 +7,11 @@ const session = require('./config/session');
 const server = express();
 
 server.use(session);
+server.use((require, response, next) => {
+    response.locals.session = require.session;
+
+    next();
+});
 server.use(express.urlencoded({ extended: true}));
 server.use(express.static('public'));
 server.use(methodOverride('_method'));
