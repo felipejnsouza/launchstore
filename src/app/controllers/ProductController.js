@@ -30,6 +30,8 @@ module.exports = {
             return response.send('Please, send at least one image')
         };
 
+        require.body.user_id = require.session.userId;
+        
         let results = await Product.create(require.body);
         const productId = results.rows[0].id;
 
