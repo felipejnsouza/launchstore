@@ -3,16 +3,15 @@ const { formatPrice } = require('../../lib/utils');
 
 module.exports = {
     async index(require, response){
-        let results = await Product.all();
-        const products = results.rows;
+        const products = await Product.findAll();
 
         if(!products) return response.send("Products not found!");
             
 
         async function getImage(productId){
-            let results = await Product.files(productId);
+            let files = await Product.files(productId);
             
-            const files = results.rows.map( file => `${require.protocol}://${require.headers.host}${file.path.replace("public", "")}`);
+            files = files.map( file => `${require.protocol}://${require.headers.host}${file.path.replace("public", "")}`);
 
             return files[0];
         };
