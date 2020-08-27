@@ -94,9 +94,9 @@ module.exports = {
             require.session.destroy();
             
             //remover as imagens da pasta public
-            promiseResults.map(results => {
+            promiseResults.map(files => {
                 
-                results.rows.map(file => {
+                files.map(file => {
                     try {
                         unlinkSync(file.path);
                     } catch (err) {

@@ -1,8 +1,9 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const File = require('../models/File');
+const LoadProductService = require('../services/LoadProductService');
 
-const { formatPrice, date } = require('../../lib/utils');
+const { unlinkSync } = require('fs');
 
 module.exports = {
     async create(require, response){
@@ -46,10 +47,10 @@ module.exports = {
                 status: status || 1
             })
 
-            const filesPromise = require.files.map(file => File.create({...file, product_id}));
+            const filesPromise = require.files.map(file => File.create({name: file.filename, path: file.path, product_id}));
             await Promise.all(filesPromise);
 
-            return response.redirect(`products/${productId}/edit`);
+            return response.redirect(`products/${product_id}/edit`);
 
             
         } catch (error) {
@@ -59,27 +60,11 @@ module.exports = {
     },
     async show(require, response){
         try {
-            const product = await Product.find(require.params.id);
+            const product = await LoadProductService.load('product', {where: {
+                id: require.params.id
+            }});
 
-            if(!product) return response.send("Product not found!");
-
-            const { day, hour, minutes, month } = date(product.updated_at);
-
-            product.published = {
-                day: `${day}/${month}`,
-                hour: `${hour}h${minutes}`
-            };
-
-            product.oldPrice = formatPrice(product.old_price);
-            product.price = formatPrice(product.price);
-
-            let files = await Product.files(product.id)
-            files = files.map( file => ({
-                ...file,
-                src: `${require.protocol}://${require.headers.host}${file.path.replace("public", "")}`
-            }));
-
-            return response.render('products/show', {product, files});
+            return response.render('products/show', {product});
         } catch (error) {
             console.error(error);
         };
@@ -87,25 +72,14 @@ module.exports = {
     },
     async edit(require, response){
         try {
-            const product = await Product.find(require.params.id);
-
-            if(!product) response.send('Product not found!');
-
-            product.price = formatPrice(product.price);
-            product.old_price = formatPrice(product.old_price);
+            const product = await LoadProductService.load('product', {where: {
+                id: require.params.id
+            }});
 
             // get categories
             const categories = await Category.findAll();
 
-            // get images
-            let files = await Product.files(product.id);
-
-            files = files.map(file => ({
-                ...file,
-                src: `${require.protocol}://${require.headers.host}${file.path.replace("public", "")}`
-            }));
-
-            return response.render('products/edit', { product, categories, files });
+            return response.render('products/edit', { product, categories });
             
         } catch (error) {
             console.error(error);
@@ -146,7 +120,7 @@ module.exports = {
             if(require.body.old_price != require.body.price){
                 const oldProduct = await Product.find(require.body.id)
 
-                require.body.old_price = oldProduct.rows[0].price
+                require.body.old_price = oldProduct.price
             }
 
             await Product.update(require.body.id, {
@@ -167,7 +141,19 @@ module.exports = {
         
     },
     async delete(require, response){
+        const files = await Product.files(require.body.id);
         await Product.delete(require.body.id);
+
+
+        files.map(file => {
+            try {
+                unlinkSync(file.path);
+            } catch (err) {
+                console.error(err)
+            };
+        });
+    
+
 
         return response.redirect('/products/create');
     }
