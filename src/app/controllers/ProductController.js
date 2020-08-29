@@ -20,17 +20,7 @@ module.exports = {
     async post(require, response){
         try {
             //lógica de salvar
-            const keys = Object.keys(require.body);
-
-            for(key of keys){
-                if(require.body[key] == "") {
-                    return response.send('Please, fill all fields!')
-                };
-            };
-
-            if(require.files.length == 0) {
-                return response.send('Please, send at least one image')
-            };
+            
 
             let { category_id, name, description, old_price, price, quantity, status } = require.body;
 
@@ -88,14 +78,6 @@ module.exports = {
     },
     async put(require, response){
         try {
-            const keys = Object.keys(require.body);
-
-            for(key of keys){
-                if(require.body[key] == "" && key != "removed_files") {
-                    return response.send('Please, fill all fields!')
-                };
-            };
-
             if(require.files.length != 0){
                 const newFilesPromise = require.files.map( file => {
                     File.create({...file, product_id: require.body.id})
