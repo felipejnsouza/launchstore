@@ -1,10 +1,12 @@
 const User = require('../models/User');
 const Product = require('../models/Product');
+const LoadProductsService = require('../services/LoadProductService');
 
 const { unlinkSync } = require('fs');
 const { hash } = require('bcryptjs');
 
 const { formatCep, formatCpfCnpj } = require('../../lib/utils');
+const { address } = require('faker');
 
 module.exports = {
     registerForm(require, response){
@@ -116,5 +118,12 @@ module.exports = {
                 error: "Erro ao tentar deletar sua conta!"
             });
         };
+    },
+    async ads(require, response){
+        const products = await LoadProductsService.load('products',{
+            where: { user_id: require.session.userId}
+        });
+
+        return response.render('user/ads', { products })
     }
 };
