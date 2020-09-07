@@ -1,10 +1,10 @@
-const LoadProductsService = require('../services/LoadProductService');
+const LoadProductService = require('../services/LoadProductService');
+const LoadOrderService = require('../services/LoadOrderService');
 const User = require('../models/User');
 const Order = require('../models/Order');
 
 const Cart = require('../../lib/cart');
 const mailer = require('../../lib/mailer');
-const { formatPrice, date } = require('../../lib/utils');
 
 const email = (seller, product, buyer) => `
 <h2>Olá ${seller.name},</h2>
@@ -25,49 +25,27 @@ const email = (seller, product, buyer) => `
 
 module.exports = {
     async index(require, response){
-        // pegar os pedidos do usuário
-        let orders = await Order.findAll({ where: { buyer_id: require.session.userId }});
-
-        const getOrdersPromise = orders.map(async order => {
-            // detalhes do produto
-            order.product = await LoadProductsService.load('product', {
-                where: { id: order.product_id }
-            });
-
-            // detalhes do comprador
-            order.buyer = await User.findOne({
-                where: { id: order.buyer_id}
-            });
-
-            // detalhes do vendedor
-            order.seller = await User.findOne({
-                where: { id: order.seller_id}
-            });
-
-            // formatação de preço
-            order.formattedPrice = formatPrice(order.price);
-            order.formattedTotal = formatPrice(order.total);
-
-            // formatação do status
-            const statuses = {
-                open: 'Aberto',
-                sold: 'Vendido',
-                canceled: 'Cancelado'
-            }
-
-            order.formattedStatus = statuses[order.status];
-
-            // formatação de atulizado em..
-            const updatedAt = date(order.updated_at)
-            order.formattedUpdatedAt = `${order.formattedStatus} em ${updatedAt.day}/${updatedAt.month}/${updatedAt.year}`
-
-            return order
+        const orders = await LoadOrderService.load('orders', {
+            where: { buyer_id: require.session.userId }
         });
-
-        orders = await Promise.all(getOrdersPromise);
 
         return response.render("orders/index", { orders });
 
+    },
+    async sales(require, response){
+        const sales = await LoadOrderService.load('orders', {
+            where: { seller_id: require.session.userId }
+        });
+
+        return response.render("orders/sales", { sales });
+
+    },
+    async show(require, response){
+        const order = await LoadOrderService.load('order', {
+            where: {id: require.params.id}
+        })
+
+        return response.render('orders/details', {order})
 
     },
     async post(require, response){
@@ -96,7 +74,7 @@ module.exports = {
                 });
 
                 // pegar os dados do produto
-                product = await LoadProductsService.load('product', {
+                product = await LoadProductService.load('product', {
                     where: { id: product_id}
                 })
 
@@ -137,4 +115,5 @@ module.exports = {
         };
         
     }
+    
 };
