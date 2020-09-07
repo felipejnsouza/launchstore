@@ -11,5 +11,6 @@ routes.get('/',OnlyUsers, OrderController.index);
 
 routes.get('/sales',OnlyUsers, OrderController.sales);
 routes.get('/:id',OnlyUsers, OrderController.show);
+routes.post('/:id/:action',OnlyUsers, OrderController.update);
 
 module.exports = routes;
